@@ -1,7 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation } from "wouter";
-import { UserRole } from "@/_core/hooks/useAuth";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth, UserRole } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -12,7 +11,7 @@ export default function ProtectedRoute({
   allowedRoles: UserRole[];
   children: ReactNode;
 }) {
-  const { user, loading, isAuthenticated } = useAuthContext();
+  const { user, loading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {

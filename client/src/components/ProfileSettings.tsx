@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { User, Lock, LogOut, Camera, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function ProfileSettings() {
-  const { user, logout } = useAuthContext();
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   
   // Profile State

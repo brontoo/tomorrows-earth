@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { nanoid } from "nanoid";
 import { trpc } from "@/lib/trpc";
 
@@ -226,7 +226,7 @@ interface ProjectFormProps {
 }
 
 export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps) {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
 

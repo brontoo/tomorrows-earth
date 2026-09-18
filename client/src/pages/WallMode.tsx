@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { X, Play, Pause, Trophy } from "lucide-react";
 import { Link } from "wouter";
@@ -10,7 +10,7 @@ import { Link } from "wouter";
 type DisplayMode = "journey" | "leaderboard" | "winners";
 
 export default function WallMode() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [mode, setMode] = useState<DisplayMode>("journey");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);

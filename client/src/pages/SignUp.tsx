@@ -143,7 +143,7 @@ export default function SignUp() {
                 Join the Movement
               </CardTitle>
               <CardDescription className="text-muted-foreground mt-2 font-medium">
-                Create your Tomorrow&apos;s Earth account
+                Create your account for Tomorrow's Earth Expo 2026
               </CardDescription>
             </CardHeader>
 

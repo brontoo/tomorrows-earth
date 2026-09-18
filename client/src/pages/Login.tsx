@@ -7,7 +7,6 @@ import Navigation from "@/components/Navigation";
 import { Loader, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useAuthContext } from "@/contexts/AuthContext";
 
 type LoginRole = "admin" | "teacher" | "student" | "visitor";
 
@@ -19,7 +18,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loginMutation = trpc.auth.loginWithEmail.useMutation();
-  const { refresh } = useAuthContext();
 
   const handleEmailLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,10 +46,8 @@ export default function Login() {
       };
 
       localStorage.setItem("mock-user", JSON.stringify(authUser));
-      const refreshedUser = await refresh();
-      const effectiveRole = refreshedUser?.role ?? resolvedRole;
 
-      if (effectiveRole === "visitor" || !result.user?.role) {
+      if (resolvedRole === "visitor" || !result.user?.role) {
         setLocation("/choose-role");
       } else {
         const dashboardMap: Record<string, string> = {
@@ -59,7 +55,7 @@ export default function Login() {
           teacher: "/teacher/dashboard",
           admin: "/admin/dashboard",
         };
-        setLocation(dashboardMap[effectiveRole] || "/");
+        setLocation(dashboardMap[resolvedRole] || "/");
       }
     } catch (err: any) {
       const raw: string = err?.message ?? "";
@@ -93,7 +89,7 @@ export default function Login() {
               <CardHeader className="p-0">
                 <h2 className="text-3xl font-extrabold tracking-tight hero-text-glow text-foreground">Welcome Back</h2>
                 <p className="text-muted-foreground mt-2 font-medium text-sm">
-                  Sign in to Tomorrow&apos;s Earth
+                  Sign in to Tomorrow's Earth Expo 2026
                 </p>
               </CardHeader>
             </CardHeader>

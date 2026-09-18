@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import {
   CheckCircle2, FileText, ThumbsUp, Clock, MessageSquare,
@@ -13,7 +13,6 @@ import MyProjectsDashboard from "@/components/MyProjectsDashboard";
 import { AssignmentWizard } from "@/components/AssignmentWizard";
 import { StudentDashboardLayout } from "@/components/StudentDashboardLayout";
 import { ProfileSettings } from "@/components/ProfileSettings";
-import MyJourney from "@/pages/MyJourney";
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 
@@ -323,8 +322,8 @@ function WikiLearnMore({ categorySlug }: { categorySlug: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function StudentDashboard() {
-  const { user, isAuthenticated, loading } = useAuthContext();
-  const [activeTab, setActiveTab] = useState("journey");
+  const { user, isAuthenticated, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [myProjects, setMyProjects] = useState<any[]>([]);
   const [assignment, setAssignment] = useState<any>(null);
 
@@ -410,8 +409,6 @@ export default function StudentDashboard() {
   return (
     <StudentDashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
       <div className="space-y-8">
-
-        {activeTab === "journey" && <MyJourney embedded />}
 
         {/* ══ DASHBOARD TAB ══ */}
         {activeTab === "dashboard" && (

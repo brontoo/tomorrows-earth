@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { FileText, ThumbsUp, Clock, MessageSquare, Plus } from "lucide-react";
 import { Link } from "wouter";
 
 export function StudentDashboardOverview() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const { data: myProjects } = trpc.projects.getMyProjects.useQuery();
   const { data: assignment } = trpc.assignments.getMyAssignment.useQuery();
 

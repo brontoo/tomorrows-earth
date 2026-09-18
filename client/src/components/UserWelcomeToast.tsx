@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { X } from "lucide-react";
 
@@ -8,7 +8,7 @@ import { X } from "lucide-react";
  * Displays user's name and role, then auto-dismisses after 5 seconds.
  */
 export function UserWelcomeToast() {
-  const { user, isAuthenticated } = useAuthContext();
+  const { user, isAuthenticated } = useAuth();
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
 

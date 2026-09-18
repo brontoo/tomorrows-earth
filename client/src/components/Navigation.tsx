@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import {
   DropdownMenu,
@@ -20,7 +20,7 @@ interface NavigationProps {
 
 export default function Navigation({ reserveSpace = true }: NavigationProps) {
   const [location] = useLocation();
-  const { user, isAuthenticated, logout } = useAuthContext();
+  const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ── Hide / Show on scroll ──────────────────────────────────────────────────
@@ -57,12 +57,10 @@ export default function Navigation({ reserveSpace = true }: NavigationProps) {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/explore", label: "Explore" },
-    { href: "/learn", label: "Learn" },
-    { href: "/missions", label: "Missions" },
-    { href: "/experiences", label: "Experiences" },
-    { href: "/stories", label: "Earth Stories" },
-    { href: "/impact", label: "Our Impact" },
+    { href: "/innovation-hub", label: "Innovation Hub" },
+    { href: "/vote", label: "Vote" },
+    { href: "/journey-cinema", label: "Journey Cinema" },
+    { href: "/resources", label: "Resources" },
   ];
 
   const getDashboardLink = () => {
@@ -73,7 +71,7 @@ export default function Navigation({ reserveSpace = true }: NavigationProps) {
         { href: "/teacher/dashboard", label: "Teacher Dashboard" },
       ];
       case "teacher": return [{ href: "/teacher/dashboard", label: "Teacher Dashboard" }];
-      case "student": return [{ href: "/journey", label: "My Journey" }];
+      case "student": return [{ href: "/student/dashboard", label: "My Projects" }];
       default: return null;
     }
   };
@@ -105,12 +103,12 @@ export default function Navigation({ reserveSpace = true }: NavigationProps) {
               <div className="absolute -inset-1 bg-gradient-to-r from-leaf-green to-digital-cyan rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300" />
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663327629652/4H46x9AiKyJYDgF5KtC5JK/tee-logo-icon-c4HyST3WbgCi982xP8aQdA.webp"
-                alt="Tomorrow's Earth"
+                alt="Tomorrow's Earth Expo"
                 className="relative h-10 w-10 object-contain"
               />
             </div>
             <span className="hidden sm:inline text-foreground font-bold text-lg tracking-tight">
-              Tomorrow's Earth
+              TEE-2026
             </span>
           </Link>
 

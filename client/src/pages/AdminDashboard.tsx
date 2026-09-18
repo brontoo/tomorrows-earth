@@ -10,11 +10,11 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Users, BarChart3, Settings, ToggleRight, AlertCircle, Loader2, Calendar, Lock, Unlock, Trash2, Eye, EyeOff, Video, X, FileText } from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated, loading } = useAuthContext();
+  const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (

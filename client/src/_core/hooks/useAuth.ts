@@ -346,18 +346,7 @@ export function useAuth(options?: any) {
       }
       localStorage.setItem("mock-user", JSON.stringify(finalUser));
       setUser(finalUser);
-      return finalUser;
     }
-
-    const serverUser = await getServerSessionUser();
-    if (serverUser) {
-      localStorage.setItem("mock-user", JSON.stringify(serverUser));
-      setUser(serverUser);
-      return serverUser;
-    }
-
-    setUser(null);
-    return null;
   }, [buildUser]);
 
   const loginMock = useCallback(async (role: UserRole) => {

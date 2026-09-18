@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ChevronDown, LayoutDashboard } from "lucide-react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import PremiumCountdown from "@/components/PremiumCountdown";
 
 // SVG viewBox is 0 0 500 500; overlay renders at OVERLAY_PX × OVERLAY_PX
@@ -54,7 +54,7 @@ export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<HTMLDivElement>(null);
-  const { user, isAuthenticated } = useAuthContext();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -84,7 +84,7 @@ export default function HeroSection() {
       ? "/admin/dashboard"
       : user?.role === "teacher"
         ? "/teacher/dashboard"
-        : "/journey";
+        : "/student/dashboard";
 
   return (
     <div
@@ -209,7 +209,7 @@ export default function HeroSection() {
                   className="premium-gradient text-white font-bold px-10 py-6 text-base rounded-full shadow-2xl shadow-green-900/40 hover:scale-105 active:scale-95 transition-transform duration-200 border-none gap-2"
                 >
                   <LayoutDashboard size={18} />
-                  Go to My Journey
+                  Go to My Dashboard
                 </Button>
               </Link>
             ) : (

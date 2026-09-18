@@ -108,7 +108,3 @@ temp/
 
 .vercel
 .env*.local
-.env.*
-*secret*
-*token*
-*password*

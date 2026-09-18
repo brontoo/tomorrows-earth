@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import {
@@ -44,7 +44,7 @@ export default function TeacherDashboard() {
 }
 
 function TeacherDashboardContent() {
-  const { user, isAuthenticated, loading } = useAuthContext();
+  const { user, isAuthenticated, loading } = useAuth();
   const utils = trpc.useUtils();
   const [rejectingId, setRejectingId] = useState<number | null>(null);
 

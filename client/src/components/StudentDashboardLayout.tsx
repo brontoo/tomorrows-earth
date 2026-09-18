@@ -13,9 +13,8 @@ import {
   Menu,
   X,
   Home,
-  Leaf,
 } from "lucide-react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface StudentDashboardLayoutProps {
   children: React.ReactNode;
@@ -30,11 +29,10 @@ export function StudentDashboardLayout({
 }: StudentDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location] = useLocation();
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   const navItems = [
-    { id: "journey", label: "My Journey", icon: Leaf },
-    { id: "dashboard", label: "Legacy Dashboard", icon: LayoutDashboard },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "projects", label: "My Projects", icon: FileText },
     { id: "voting", label: "Voting Area", icon: Vote, href: "/vote" },
     { id: "resources", label: "Resources", icon: BookOpen, href: "/resources" },

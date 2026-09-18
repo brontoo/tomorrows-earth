@@ -6,7 +6,6 @@
 import { eq, and, inArray } from "drizzle-orm";
 import { 
   users, projects, votes, systemConfig, resources,
-  academicYears, AcademicYear, InsertAcademicYear,
   submissionHistory, projectFeedback, comments, journeyPosts,
   messages, notifications, rubricScores
 } from "../drizzle/schema.js";

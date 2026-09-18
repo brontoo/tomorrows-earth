@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,7 @@ type JourneyVideoPost = {
 };
 
 export default function JourneyCinema() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedGrade, setSelectedGrade] = useState<string>("all");
   const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);

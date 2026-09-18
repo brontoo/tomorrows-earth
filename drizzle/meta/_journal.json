@@ -15,55 +15,6 @@
       "when": 1775555827910,
       "tag": "0001_special_wendigo",
       "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1789544851583,
-      "tag": "0002_famous_microchip",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1789545043992,
-      "tag": "0003_futuristic_smasher",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1789545302140,
-      "tag": "0004_new_young_avengers",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1789545632369,
-      "tag": "0005_even_boom_boom",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1789549861351,
-      "tag": "0006_peaceful_absorbing_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1789550743001,
-      "tag": "0007_petite_songbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1789553319318,
-      "tag": "0008_red_omega_flight",
-      "breakpoints": true
     }
   ]
 }

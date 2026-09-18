@@ -2,7 +2,7 @@
 
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Home, LayoutDashboard } from "lucide-react";
 import Navigation from "@/components/Navigation";
@@ -60,7 +60,7 @@ function SuccessScreen() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ProjectSubmissionPage() {
   const [, navigate] = useLocation();
-  const { user, isAuthenticated, loading } = useAuthContext();
+  const { user, isAuthenticated, loading } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [hasSetup, setHasSetup] = useState(false);
 

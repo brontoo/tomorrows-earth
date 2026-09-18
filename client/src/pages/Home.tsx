@@ -6,7 +6,7 @@ import Navigation from "@/components/Navigation";
 import { Link } from "wouter";
 import { OAuthRedirect } from "@/components/OAuthRedirect.tsx";
 import ValueProposition from "@/components/ValueProposition";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   LayoutDashboard, LogIn, Globe, Users, Layers,
   CalendarDays, MapPin, Flag, Sparkles, Wind, Leaf, Newspaper, ExternalLink, ChevronLeft, ChevronRight, X,
@@ -479,7 +479,7 @@ function ExpoShowcaseCard({
 
 // ─── Main Home ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { user, isAuthenticated } = useAuthContext();
+  const { user, isAuthenticated } = useAuth();
   const { data: stats } = trpc.projects.getStats.useQuery(undefined, {
     retry: false,
     // @ts-ignore
@@ -493,7 +493,7 @@ export default function Home() {
 
   const dashboardPath =
     user?.role === "admin"   ? "/admin/dashboard"   :
-    user?.role === "teacher" ? "/teacher/dashboard" : "/journey";
+    user?.role === "teacher" ? "/teacher/dashboard" : "/student/dashboard";
 
   const firstName = (user?.name ?? "").split(" ")[0];
   const [activeExpoCard, setActiveExpoCard] = useState<number | null>(null);
@@ -788,7 +788,7 @@ export default function Home() {
               Empowering the Next Generation of Innovators
             </h2>
             <p className="text-base md:text-lg text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-              Tomorrow's Earth helps students learn, explore, act, and create measurable impact through sustainability missions, stories, experiences, and innovation.
+              Tomorrow's Earth Expo empowers high school students to become environmental innovators and leaders. Through collaborative projects in environmental protection, sustainable communities, green innovation, and educational awareness, we inspire the next generation to design realistic solutions that raise awareness and demonstrate positive impact for a thriving planet.
             </p>
           </div>
         </div>
@@ -803,13 +803,13 @@ export default function Home() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-cyan-500">Innovate?</span>
             </h2>
             <p className="text-base md:text-lg text-slate-500 dark:text-slate-400 mb-12 max-w-xl mx-auto font-medium leading-relaxed">
-              Start your sustainability journey through learning, meaningful action, and creative impact.
+              Join the journey of sustainability. Showcase your brilliance, vote for the best, and help us save the planet.
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
               {isAuthenticated ? (
                 <Link href={dashboardPath}>
                   <Button size="lg" className="rounded-full px-10 py-6 premium-gradient text-white text-base font-bold shadow-xl hover:scale-105 transition-transform border-none gap-2">
-                    <LayoutDashboard size={18} /> Go to My Journey
+                    <LayoutDashboard size={18} /> Go to My Dashboard
                   </Button>
                 </Link>
               ) : (
@@ -836,7 +836,7 @@ export default function Home() {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663327629652/4H46x9AiKyJYDgF5KtC5JK/tee-logo-icon-c4HyST3WbgCi982xP8aQdA.webp" alt="TEE" className="h-10 w-10 object-contain" />
-                <span className="text-xl font-black tracking-tighter text-white">Tomorrow&apos;s Earth</span>
+                <span className="text-xl font-black tracking-tighter text-white">TEE-2026</span>
               </div>
               <p className="text-slate-400 max-w-sm font-medium text-sm leading-relaxed">
                 Empowering Um Al-Emarat School students to lead the sustainability movement through innovation and creativity.
@@ -844,7 +844,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <Link href={dashboardPath}>
                   <Button size="sm" variant="outline" className="rounded-full border-slate-700 text-slate-300 hover:bg-slate-800 gap-2 mt-2">
-                    <LayoutDashboard size={14} /> My Journey
+                    <LayoutDashboard size={14} /> My Dashboard
                   </Button>
                 </Link>
               ) : (
@@ -883,7 +883,7 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.3em] font-bold text-slate-600">
-            © 2026 Tomorrow&apos;s Earth · Um Al-Emarat School · All Rights Reserved
+            © 2026 Tomorrow's Earth Expo · Um Al-Emarat School · All Rights Reserved
           </div>
         </div>
       </footer>

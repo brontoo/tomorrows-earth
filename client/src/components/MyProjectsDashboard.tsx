@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -145,7 +145,7 @@ function readLocalProjects(): any[] {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MyProjectsDashboard() {
   const [, navigate] = useLocation();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated } = useAuth();
   const [showWizard, setShowWizard] = useState(false);
   // Track local-only drafts so we can merge them with server results
   const [localDrafts, setLocalDrafts] = useState<any[]>(() => readLocalProjects());
