@@ -27,6 +27,7 @@ const Experiences        = lazy(() => import("./pages/Experiences"));
 const Missions            = lazy(() => import("./pages/Missions"));
 const MissionDetail       = lazy(() => import("./pages/MissionDetail"));
 const MissionVerification = lazy(() => import("./pages/MissionVerification"));
+const EarthJourneyPage    = lazy(() => import("./pages/EarthJourneyPage"));
 const ProjectDetail      = lazy(() => import("./pages/ProjectDetail"));
 const StudentDashboard   = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard   = lazy(() => import("./pages/TeacherDashboard"));
@@ -64,6 +65,7 @@ function Router() {
         <Route path="/stories" component={JourneyCinema} />
         <Route path="/impact" component={Impact} />
         <Route path="/journey" component={StudentDashboard} />
+        <Route path="/journey-map" component={EarthJourneyPage} />
         <Route path="/challenges"><PlatformSectionPlaceholder title="Innovation Challenges" description="Optional sustainability challenges will appear here." /></Route>
         <Route path="/expo"><PlatformSectionPlaceholder title="Tomorrow's Earth Expo" description="The annual Expo will curate the year's strongest learning, action and impact." /></Route>
         <Route path="/showcase/:id"><PlatformSectionPlaceholder title="Achievement Showcase" description="Selected achievements will be presented here." /></Route>

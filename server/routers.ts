@@ -388,6 +388,13 @@ export const appRouter = router({
         if (ctx.user.role !== "student") return null;
         return db.getMissionCompletion(input.missionId, ctx.user.id, input.academicYearId);
       }),
+    getAllMine: studentProcedure
+      .input(z.object({ academicYearId: z.number().int().positive().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const academicYearId = input?.academicYearId ?? (await db.getCurrentAcademicYear())?.id;
+        if (!academicYearId) return [];
+        return db.getMissionCompletionsByStudent(ctx.user.id, academicYearId);
+      }),
     start: studentProcedure
       .input(z.object({ missionId: z.number().int().positive(), academicYearId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {

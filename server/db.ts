@@ -589,6 +589,15 @@ export async function getMissionCompletion(missionId: number, studentId: number,
   return result[0];
 }
 
+export async function getMissionCompletionsByStudent(studentId: number, academicYearId: number): Promise<MissionCompletion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(missionCompletions).where(and(
+    eq(missionCompletions.studentId, studentId),
+    eq(missionCompletions.academicYearId, academicYearId),
+  ));
+}
+
 export async function createMissionCompletion(data: InsertMissionCompletion): Promise<MissionCompletion> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

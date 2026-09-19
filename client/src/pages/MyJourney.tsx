@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import { trpc } from "@/lib/trpc";
-import { ArrowUpRight, Award, CheckCircle2, Leaf, LockKeyhole, Target } from "lucide-react";
+import { ArrowUpRight, Award, CheckCircle2, Leaf, LockKeyhole, Map, Target } from "lucide-react";
+import { Link } from "wouter";
 
 export default function MyJourney({ embedded = false }: { embedded?: boolean }) {
   const passportQuery = trpc.passport.getMine.useQuery();
@@ -18,7 +19,12 @@ export default function MyJourney({ embedded = false }: { embedded?: boolean }) 
         <section className="rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-900 to-cyan-950 p-8 text-white shadow-xl md:p-12">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-200">Your sustainability journey</p>
           <div className="mt-5 flex flex-col justify-between gap-8 md:flex-row md:items-end">
-            <div><h1 className="text-4xl font-black tracking-tight md:text-6xl">My Journey</h1><p className="mt-4 text-emerald-50/80">Learn. Explore. Act. Create Impact.</p></div>
+            <div><h1 className="text-4xl font-black tracking-tight md:text-6xl">My Journey</h1><p className="mt-4 text-emerald-50/80">Learn. Explore. Act. Create Impact.</p>
+              <Link href="/journey-map" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/15 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white/25">
+                <Map className="h-4 w-4" aria-hidden="true" />
+                Open the adventure map
+              </Link>
+            </div>
             {passport?.academicYear && <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-sm"><p className="text-cyan-100/70">Academic year</p><p className="mt-1 font-bold">{passport.academicYear.label}</p></div>}
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-[1fr_280px] md:items-end"><div><p className="text-sm font-semibold uppercase tracking-wide text-cyan-100/70">Sustainability points</p><p className="mt-1 text-6xl font-black">{passport?.totalPoints ?? 0}</p><div className="mt-6 h-3 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-cyan-300 transition-all" style={{ width: `${progress}%` }} /></div><p className="mt-3 text-sm text-emerald-50/75">{nextLevel ? `${nextLevel.minPoints - (passport?.totalPoints ?? 0)} points until ${nextLevel.name}` : "You have reached the highest configured level."}</p></div><div className="rounded-2xl bg-white/10 p-5"><p className="text-sm text-cyan-100/70">Current level</p><p className="mt-2 text-2xl font-black">{currentLevel?.icon || "🌱"} {currentLevel?.name || "Seed"}</p><p className="mt-2 text-sm text-emerald-50/75">{currentLevel?.description || "Your journey starts with one meaningful step."}</p></div></div>
