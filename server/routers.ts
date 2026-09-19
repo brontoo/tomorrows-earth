@@ -11,6 +11,7 @@ import { notificationsRouter } from "./routers/notifications.js";
 import * as db from "./db.js";
 import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
+import { invokeLLM } from "./_core/llm.js";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -170,6 +171,28 @@ export const appRouter = router({
     getMyProjects: teacherProcedure.query(async ({ ctx }) => {
       return db.getProjectsBySupervisor(ctx.user.id);
     }),
+    getMissionVerificationQueue: teacherProcedure.query(() => db.getMissionVerificationQueue()),
+    reviewMissionCompletion: teacherProcedure
+      .input(z.object({
+        completionId: z.number().int().positive(),
+        decision: z.enum(["approve", "request_revision", "reject"]),
+        feedback: z.string().max(10000).optional(),
+        score: z.number().int().min(0).max(100).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await db.reviewMissionCompletion({ ...input, reviewerId: ctx.user.id });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Failed to review mission";
+          if (message === "Mission completion not found") {
+            throw new TRPCError({ code: "NOT_FOUND", message });
+          }
+          if (message === "Mission completion is not awaiting verification") {
+            throw new TRPCError({ code: "BAD_REQUEST", message });
+          }
+          throw error;
+        }
+      }),
     create: adminProcedure
       .input(z.object({
         userId: z.number(),
@@ -335,6 +358,144 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await db.setSystemConfig(input.key, input.value);
         return { success: true };
+      }),
+  }),
+
+  academicYears: router({
+    getCurrent: publicProcedure.query(() => db.getCurrentAcademicYear()),
+  }),
+
+  zones: router({
+    getAll: publicProcedure.query(() => db.getActiveSustainabilityZones()),
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string().min(1) }))
+      .query(({ input }) => db.getSustainabilityZoneBySlug(input.slug)),
+  }),
+
+  missions: router({
+    getAll: publicProcedure
+      .input(z.object({ zoneId: z.number().int().positive().optional(), academicYearId: z.number().int().positive().optional() }).optional())
+      .query(({ input }) => db.getPublishedMissions(input)),
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string().min(1) }))
+      .query(({ input }) => db.getMissionBySlug(input.slug)),
+  }),
+
+  missionCompletions: router({
+    getMine: protectedProcedure
+      .input(z.object({ missionId: z.number().int().positive(), academicYearId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "student") return null;
+        return db.getMissionCompletion(input.missionId, ctx.user.id, input.academicYearId);
+      }),
+    start: studentProcedure
+      .input(z.object({ missionId: z.number().int().positive(), academicYearId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const mission = await db.getMissionById(input.missionId);
+        if (!mission) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Published mission not found" });
+        }
+        const existing = await db.getMissionCompletion(input.missionId, ctx.user.id, input.academicYearId);
+        if (existing) return existing;
+        return db.createMissionCompletion({
+          missionId: input.missionId,
+          studentId: ctx.user.id,
+          academicYearId: input.academicYearId,
+          status: "in_progress",
+        });
+      }),
+    submit: studentProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        evidence: z.string().max(10000).optional(),
+        reflection: z.string().max(10000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const completion = await db.getMissionCompletionById(input.id);
+        if (!completion || completion.studentId !== ctx.user.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Mission completion not found" });
+        }
+        if (completion.status !== "in_progress" && completion.status !== "revision_requested") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "This mission cannot be submitted again" });
+        }
+        return db.updateMissionCompletion(input.id, {
+          evidence: input.evidence ?? null,
+          reflection: input.reflection ?? null,
+          status: "submitted",
+          submittedAt: new Date(),
+        });
+      }),
+  }),
+
+  points: router({
+    getMine: studentProcedure
+      .input(z.object({ academicYearId: z.number().int().positive().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const academicYearId = input?.academicYearId ?? (await db.getCurrentAcademicYear())?.id;
+        if (!academicYearId) return { total: 0, events: [] };
+        const events = await db.getPointEventsByStudent(ctx.user.id, academicYearId);
+        return {
+          total: events.reduce((total, event) => event.verificationStatus === "reversed" || event.verificationStatus === "rejected" ? total : total + event.points, 0),
+          events,
+        };
+      }),
+  }),
+
+  passport: router({
+    getMine: studentProcedure.query(({ ctx }) => db.getStudentPassport(ctx.user.id)),
+  }),
+
+  impact: router({
+    getMine: studentProcedure
+      .input(z.object({ academicYearId: z.number().int().positive().optional() }).optional())
+      .query(async ({ ctx, input }) => db.getStudentImpact(ctx.user.id, input?.academicYearId)),
+    getSchoolSummary: publicProcedure.query(async () => {
+      const year = await db.getCurrentAcademicYear();
+      return year ? db.getSchoolImpactSummary(year.id) : [];
+    }),
+    create: studentProcedure
+      .input(z.object({
+        missionId: z.number().int().positive().optional(),
+        metricType: z.enum(["water_liters", "electricity_kwh", "waste_kg", "recycling_kg", "plastic_items", "plants_added", "trees_added", "food_waste_kg", "transport_km", "custom"]),
+        metricLabel: z.string().max(160).optional(),
+        quantity: z.number().int().positive(),
+        unit: z.string().min(1).max(40),
+        baseline: z.number().int().nonnegative().optional(),
+        result: z.number().int().nonnegative().optional(),
+        evidenceUrl: z.string().url().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const year = await db.getCurrentAcademicYear();
+        if (!year) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "No active academic year" });
+        return db.createImpactEntry({ ...input, academicYearId: year.id, studentId: ctx.user.id, verificationStatus: "pending" });
+      }),
+  }),
+
+  ecoGuide: router({
+    chat: protectedProcedure
+      .input(z.object({
+        messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(4000) })).min(1).max(20),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const systemPrompt = [
+          "You are EcoGuide, an advisory sustainability learning mentor for school students.",
+          "Be age-appropriate, practical, concise, and scientifically careful. Explain uncertainty when facts depend on context.",
+          "Help students understand sustainability concepts and SDGs, choose relevant missions, reflect on activities, improve investigations, and identify evidence or measurement methods.",
+          "Use only guidance: never award Sustainability Points, approve evidence, approve nominations, or replace teacher judgement.",
+          "When a student asks for approval or points, explain that a teacher must verify it.",
+          "Clearly state that your response is AI-generated guidance when giving recommendations.",
+          `The signed-in student's role is ${ctx.user.role}.`,
+        ].join(" ");
+
+        const result = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...input.messages,
+          ],
+          maxTokens: 1200,
+        });
+        const content = result.choices[0]?.message?.content;
+        return { content: typeof content === "string" ? content : "I could not form a text response. Please try again." };
       }),
   }),
 
