@@ -27,7 +27,7 @@ const Experiences        = lazy(() => import("./pages/Experiences"));
 const Missions            = lazy(() => import("./pages/Missions"));
 const MissionDetail       = lazy(() => import("./pages/MissionDetail"));
 const MissionVerification = lazy(() => import("./pages/MissionVerification"));
-const EarthJourneyPage    = lazy(() => import("./pages/EarthJourneyPage"));
+const MissionsMapPage     = lazy(() => import("./pages/MissionsMapPage"));
 const ProjectDetail      = lazy(() => import("./pages/ProjectDetail"));
 const StudentDashboard   = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard   = lazy(() => import("./pages/TeacherDashboard"));
@@ -59,13 +59,14 @@ function Router() {
         <Route path="/explore/:categorySlug" component={ZoneDetail} />
         <Route path="/learn" component={Learn} />
         <Route path="/ecoguide" component={EcoGuide} />
-        <Route path="/missions" component={Missions} />
+        <Route path="/missions" component={MissionsMapPage} />
+        <Route path="/missions/list" component={Missions} />
         <Route path="/missions/:id" component={MissionDetail} />
         <Route path="/experiences" component={Experiences} />
         <Route path="/stories" component={JourneyCinema} />
         <Route path="/impact" component={Impact} />
         <Route path="/journey" component={StudentDashboard} />
-        <Route path="/journey-map" component={EarthJourneyPage} />
+        <Route path="/journey-map" component={MissionsMapPage} />
         <Route path="/challenges"><PlatformSectionPlaceholder title="Innovation Challenges" description="Optional sustainability challenges will appear here." /></Route>
         <Route path="/expo"><PlatformSectionPlaceholder title="Tomorrow's Earth Expo" description="The annual Expo will curate the year's strongest learning, action and impact." /></Route>
         <Route path="/showcase/:id"><PlatformSectionPlaceholder title="Achievement Showcase" description="Selected achievements will be presented here." /></Route>

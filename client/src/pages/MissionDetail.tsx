@@ -41,7 +41,7 @@ export default function MissionDetail() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container max-w-4xl px-6 pb-20 pt-12 md:pt-20">
-        <Link href="/missions"><span className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to missions</span></Link>
+        <Link href="/missions/list"><span className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to missions</span></Link>
         {missionQuery.isLoading && <div className="mt-10 h-96 animate-pulse rounded-3xl bg-muted" />}
         {missionQuery.isError && <div className="mt-10 rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center text-destructive">This mission could not be loaded.</div>}
         {!missionQuery.isLoading && !missionQuery.isError && !mission && <div className="mt-10 rounded-2xl border border-dashed border-border p-12 text-center"><h1 className="text-2xl font-bold">Mission not found</h1><p className="mt-2 text-muted-foreground">It may not be published yet.</p></div>}

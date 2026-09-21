@@ -1,6 +1,7 @@
 import { eq, and, count, inArray, desc, sum } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import * as schema from "../drizzle/schema.js";
 import { 
   User, InsertUser, users, 
   academicYears, AcademicYear, InsertAcademicYear,
@@ -51,7 +52,7 @@ export async function getDb() {
         idle_timeout: 20,
         max_lifetime: 60 * 30,
       });
-      _db = drizzle(_client);
+      _db = drizzle(_client, { schema });
     } catch (error) {
       console.error("[Database] CRITICAL: Failed to connect to PostgreSQL:", error);
       _db = null;
