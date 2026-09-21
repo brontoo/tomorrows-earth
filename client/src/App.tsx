@@ -15,6 +15,7 @@ import { Redirect } from "wouter";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import GatewayPage from "./pages/GatewayPage";
 
 // Lazy-load everything else (code splitting)
 const InnovationHub      = lazy(() => import("./pages/InnovationHub"));
@@ -51,7 +52,8 @@ function Router() {
   return (
     <Suspense fallback={<PageFallback />}>
       <Switch>
-        <Route path="/" component={Home} />
+        <Route path="/" component={GatewayPage} />
+        <Route path="/expo" component={Home} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={SignUp} />
         <Route path="/choose-role" component={ChooseRole} />
@@ -68,7 +70,6 @@ function Router() {
         <Route path="/journey" component={StudentDashboard} />
         <Route path="/journey-map" component={MissionsMapPage} />
         <Route path="/challenges"><PlatformSectionPlaceholder title="Innovation Challenges" description="Optional sustainability challenges will appear here." /></Route>
-        <Route path="/expo"><PlatformSectionPlaceholder title="Tomorrow's Earth Expo" description="The annual Expo will curate the year's strongest learning, action and impact." /></Route>
         <Route path="/showcase/:id"><PlatformSectionPlaceholder title="Achievement Showcase" description="Selected achievements will be presented here." /></Route>
         <Route path="/innovation-hub"><Redirect to="/explore" /></Route>
         <Route path="/innovation-hub/:categorySlug"><Redirect to="/explore" /></Route>

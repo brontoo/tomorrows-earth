@@ -19,6 +19,13 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const loginMutation = trpc.auth.loginWithEmail.useMutation();
 
+  const getRedirect = (): string | null => {
+    const raw = new URLSearchParams(window.location.search).get("redirect")
+      || localStorage.getItem("redirect-after-auth");
+    if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
+    return null;
+  };
+
   const handleEmailLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
@@ -47,7 +54,11 @@ export default function Login() {
 
       localStorage.setItem("mock-user", JSON.stringify(authUser));
 
-      if (resolvedRole === "visitor" || !result.user?.role) {
+      const redirect = getRedirect();
+      if (redirect) {
+        localStorage.removeItem("redirect-after-auth");
+        setLocation(redirect);
+      } else if (resolvedRole === "visitor" || !result.user?.role) {
         setLocation("/choose-role");
       } else {
         const dashboardMap: Record<string, string> = {

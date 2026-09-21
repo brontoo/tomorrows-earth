@@ -51,8 +51,20 @@ export default function ChooseRole() {
   const [isLoading, setIsLoading] = useState(false);
   const syncUser = trpc.auth.syncUser.useMutation();
 
+  const getRedirect = (): string | null => {
+    const raw = new URLSearchParams(window.location.search).get("redirect")
+      || localStorage.getItem("redirect-after-auth");
+    if (raw && raw.startsWith("/") && !raw.startsWith("//")) {
+      localStorage.setItem("redirect-after-auth", raw);
+      return raw;
+    }
+    return null;
+  };
+
   const confirm = async () => {
     if (!selected) return;
+
+    const redirect = getRedirect();
 
     const dashboardMap: Record<RequestedRole, string> = {
       admin: "/admin/dashboard",
@@ -89,7 +101,8 @@ export default function ChooseRole() {
 
         localStorage.setItem("mock-user", JSON.stringify(mockUser));
         localStorage.removeItem("requestedRole");
-        window.location.href = dashboardMap[selected];
+        localStorage.removeItem("redirect-after-auth");
+        window.location.href = redirect || dashboardMap[selected];
         return;
       } catch (err) {
         console.error("Error updating user role", err);
@@ -101,11 +114,13 @@ export default function ChooseRole() {
     localStorage.setItem("requestedRole", selected);
 
     if (selected === "visitor") {
-      window.location.href = "/vote";
+      window.location.href = redirect || "/vote";
       return;
     }
 
-    window.location.href = "/login";
+    window.location.href = redirect
+      ? `/login?redirect=${encodeURIComponent(redirect)}`
+      : "/login";
   };
 
   return (
