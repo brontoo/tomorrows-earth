@@ -12,6 +12,7 @@ import * as db from "./db.js";
 import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
 import { invokeLLM } from "./_core/llm.js";
+import { getClientIp } from "./_core/requestContext.js";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -46,14 +47,6 @@ const studentProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 // Per-IP rate limit for voting: max 1 request per 5 seconds
 const votingRateLimit = new Map<string, number>();
-
-function getClientIp(req: { headers: Record<string, string | string[] | undefined>; socket?: { remoteAddress?: string } }): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (forwarded) {
-    return (Array.isArray(forwarded) ? forwarded[0] : forwarded).split(",")[0].trim();
-  }
-  return req.socket?.remoteAddress ?? "unknown";
-}
 
 export const appRouter = router({
   system: systemRouter,

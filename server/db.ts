@@ -32,35 +32,78 @@ import {
   submissionHistory, InsertSubmissionHistory
 } from "../drizzle/schema.js";
 import { ENV } from './_core/env.js';
+import { maskConnectionString, validateServerEnv } from './_core/envCheck.js';
 import { getStaffRegistryEntryByEmail } from "./staffRegistry.js";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _client: postgres.Sql | null = null;
 
+// Set once so a misconfigured deployment logs the actionable reason one time
+// per process instead of on every request.
+let _dbConfigError: string | null = null;
+
+export function getDbConfigError(): string | null {
+  return _dbConfigError;
+}
+
+/**
+ * Returns the database handle, or null when the server environment is unusable.
+ *
+ * A null return means "this deployment is misconfigured", not "no rows". Callers
+ * must treat null as fatal and must not present it to users as an empty result;
+ * use getDbOrThrow() on request paths so the failure is never mistaken for one.
+ */
 export async function getDb() {
+  if (_db) return _db;
+
   const dbUrl = process.env.DATABASE_URL;
-  
-  if (!_db && dbUrl) {
-    try {
-      // Log connection attempt (masking sensitive info)
-      const maskedUrl = dbUrl.replace(/:([^@]+)@/, ":****@");
-      console.log(`[Database] Attempting to connect to: ${maskedUrl}`);
-      
-      _client = postgres(dbUrl, {
-        // Connection options to help troubleshooting
-        connect_timeout: 10,
-        idle_timeout: 20,
-        max_lifetime: 60 * 30,
-      });
-      _db = drizzle(_client, { schema });
-    } catch (error) {
-      console.error("[Database] CRITICAL: Failed to connect to PostgreSQL:", error);
-      _db = null;
-    }
-  } else if (!_db && !dbUrl) {
-    console.error("[Database] ERROR: DATABASE_URL is missing in environment variables!");
+  const { ok, issues } = validateServerEnv();
+  if (!ok) {
+    _dbConfigError = issues
+      .map((issue) => `${issue.var} ${issue.problem}. Fix: ${issue.fix}`)
+      .join("; ");
+    console.error(`[Database] CRITICAL: server environment is not usable. ${_dbConfigError}`);
+    return null;
+  }
+
+  try {
+    console.log(`[Database] Attempting to connect to: ${maskConnectionString(dbUrl!)}`);
+
+    _client = postgres(dbUrl!, {
+      // Connection options to help troubleshooting
+      connect_timeout: 10,
+      idle_timeout: 20,
+      max_lifetime: 60 * 30,
+    });
+    _db = drizzle(_client, { schema });
+    _dbConfigError = null;
+  } catch (error) {
+    _dbConfigError = `Failed to create the PostgreSQL client: ${
+      error instanceof Error ? error.message : "unknown error"
+    }`;
+    console.error(`[Database] CRITICAL: ${_dbConfigError}`);
+    _db = null;
   }
   return _db;
+}
+
+/**
+ * Like getDb(), but throws when the database cannot be used.
+ *
+ * Use this on request paths that must not silently degrade: returning null here
+ * is what previously turned a missing DATABASE_URL into a generic 500
+ * ("Failed to create user session") with no actionable server log.
+ */
+export async function getDbOrThrow(): Promise<NonNullable<ReturnType<typeof drizzle>>> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error(
+      `Database is unavailable: ${
+        _dbConfigError ?? "the database client could not be initialised"
+      }`
+    );
+  }
+  return db;
 }
 
 // ============ USER MANAGEMENT ============
@@ -73,11 +116,10 @@ export async function upsertUser(user: InsertUser) {
   const normalizedEmail = user.email.toLowerCase();
   const canonicalStaff = getStaffRegistryEntryByEmail(normalizedEmail);
 
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return undefined;
-  }
+  // Throws when the deployment is misconfigured. Returning undefined here used
+  // to be reported to the user as "Failed to create user session", hiding the
+  // real cause (a missing/unusable DATABASE_URL in the server environment).
+  const db = await getDbOrThrow();
 
   try {
     const values: InsertUser = {

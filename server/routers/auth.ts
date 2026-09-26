@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc.js";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const.js";
 import { getSessionCookieOptions } from "../_core/cookies.js";
+import { anonymizeIp } from "../_core/requestContext.js";
 import * as db from "../db.js";
 import { sdk } from "../_core/sdk.js";
 
@@ -28,36 +29,96 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
+      const startedAt = Date.now();
+      // Safe audit context. Never include the password, the session token, or
+      // any environment value in logs.
+      const logContext = {
+        email: input.email.toLowerCase(),
+        role: input.role ?? "unspecified",
+        hasRoleClaim: input.role !== undefined,
+        ip: anonymizeIp(ctx.req),
+      };
 
-      const ensuredUser = await db.upsertUser({
-        email: input.email,
-        openId: `email:${input.email.toLowerCase()}`,
-        name: input.email.split("@")[0] ?? "User",
-        role: input.role,
-        loginMethod: "email",
-        lastSignedIn: new Date(),
-      });
+      let ensuredUser;
+      try {
+        ensuredUser = await db.upsertUser({
+          email: input.email,
+          openId: `email:${input.email.toLowerCase()}`,
+          name: input.email.split("@")[0] ?? "User",
+          role: input.role,
+          loginMethod: "email",
+          lastSignedIn: new Date(),
+        });
+      } catch (error) {
+        // Unexpected persistence failure: log the safe cause, return a generic
+        // message so infrastructure details are not exposed to the client.
+        console.error("[Auth] loginWithEmail: user persistence failed.", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+          cause: error instanceof Error ? error.message : String(error),
+          dbConfigError: db.getDbConfigError(),
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Sign-in is temporarily unavailable. Please try again.",
+        });
+      }
 
       if (!ensuredUser) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create user session" });
+        // The row must exist after a successful upsert. Reaching here means the
+        // insert reported success but the row could not be read back.
+        console.error("[Auth] loginWithEmail: upsert returned no user row.", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+          dbConfigError: db.getDbConfigError(),
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Sign-in is temporarily unavailable. Please try again.",
+        });
+      }
+
+      if (!ensuredUser.id || !ensuredUser.openId) {
+        console.error("[Auth] loginWithEmail: user row is missing required fields.", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+          hasId: Boolean(ensuredUser.id),
+          hasOpenId: Boolean(ensuredUser.openId),
+        });
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Sign-in is temporarily unavailable. Please try again.",
+        });
       }
 
       let sessionToken: string;
       try {
-        sessionToken = await sdk.createSessionToken(ensuredUser.openId || `email:${input.email.toLowerCase()}`, {
+        sessionToken = await sdk.createSessionToken(ensuredUser.openId, {
           name: ensuredUser.name || "User",
           email: ensuredUser.email,
           role: ensuredUser.role,
         });
       } catch (err) {
-        console.error("[Auth] Failed to sign session token:", err);
+        console.error("[Auth] loginWithEmail: session signing failed.", {
+          ...logContext,
+          durationMs: Date.now() - startedAt,
+          cause: err instanceof Error ? err.message : String(err),
+        });
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Session signing failed. Contact an administrator." });
       }
 
+      const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, sessionToken, {
         ...cookieOptions,
         maxAge: ONE_YEAR_MS,
+      });
+
+      console.info("[Auth] loginWithEmail: session issued.", {
+        ...logContext,
+        userId: ensuredUser.id,
+        resolvedRole: ensuredUser.role,
+        durationMs: Date.now() - startedAt,
+        cookie: { sameSite: cookieOptions.sameSite, secure: cookieOptions.secure, httpOnly: cookieOptions.httpOnly },
       });
 
       return {
