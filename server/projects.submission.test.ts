@@ -3,6 +3,15 @@ import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import * as db from "./db";
 
+vi.mock("../shared/const.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../shared/const.js")>();
+  return {
+    ...actual,
+    canSubmitProjects: () => true,
+    SUBMISSION_DEADLINE: new Date("2027-05-05T23:59:59Z"),
+  };
+});
+
 type StudentUser = NonNullable<TrpcContext["user"]>;
 type TeacherUser = NonNullable<TrpcContext["user"]>;
 
@@ -224,6 +233,8 @@ describe("Project Submission System", () => {
 
   describe("Teacher Project Management", () => {
     it("should allow teachers to view their supervised projects", async () => {
+      vi.spyOn(db, "isProjectReviewer").mockResolvedValue(true);
+      vi.spyOn(db, "getProjectsBySupervisor").mockResolvedValue([]);
       const ctx = createTeacherContext();
       const caller = appRouter.createCaller(ctx);
 

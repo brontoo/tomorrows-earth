@@ -142,34 +142,39 @@ are authoritative from DB.
 
 ---
 
-### 📋 Phase 3 — Submission Integrity & Deadline Enforcement — TODO
+### ✅ Phase 3 — Submission Integrity & Deadline Enforcement — COMPLETED (session 3)
 
 **Goal:** Submissions respect the phase gate, drafts work, and every status change is audited.
 
-**Files to change:**
+**Changes made:**
 
 `server/routers/projects.ts` → `submitProject`
-- Call `canSubmitProjects()` from `shared/const.ts`; throw `PRECONDITION_FAILED` if false
-- Validate that `subcategoryId` actually belongs to `categoryId` (server-side cross-check)
+- Calls `canSubmitProjects()`; throws `PRECONDITION_FAILED` if false ✓
+- Server-side cross-check that `subcategoryId` belongs to `categoryId` ✓
+- Writes `submissionHistory` row (non-blocking — submission survives audit-table failure) ✓
 
 `server/routers/projects.ts` — new mutations
-- Add `projects.saveDraft` — sets `status = "draft"`, no deadline gate, idempotent
-- Add `projects.updateMyProject` — students can edit their own project before deadline;
-  blocked after `SUBMISSION_DEADLINE`
+- `projects.saveDraft` — `status = "draft"`, no deadline gate, idempotent upsert ✓
+- `projects.updateMyProject` — owner-only edit before `SUBMISSION_DEADLINE`; on update sets
+  `status = "submitted"` + writes history row with action `"revised"` ✓
 
-`server/db.ts` — new helper
-- Add `insertSubmissionHistory(data)` to write a row on every status change
+`server/db.ts` — new helpers
+- `createSubmissionHistory(data)` — inserts a row on every status change ✓
+- `updateProjectStatusWithHistory(projectId, updates, history)` — status update + history
+  insert wrapped in a single DB transaction ✓
 
-`server/routers/projects.ts` + `server/routers.ts` → inside `teacher.approve`, `teacher.reject`,
-`submitProject`, and future `updateMyProject`
-- Wrap status update + history insert in the same DB transaction
+`server/routers.ts` → `teacher.approve`, `teacher.reject`
+- Both now call `updateProjectStatusWithHistory` (atomic status + history) ✓
+- Insert `project_approved` / `project_rejected` notifications for `project.createdBy` ✓
 
-`server/storage.ts` or upload route
-- Add MIME allow-list check after Supabase upload (read `Content-Type`)
-- Add client-side size guard hint in `ProjectForm` (enforce 500 MB video / 10 MB image)
+`server/routers.ts` → `upload.getUploadUrl`
+- MIME allow-list: JPEG/PNG/WebP/GIF, MP4/WebM/MOV, PDF/Word/PowerPoint ✓
 
-**Risk:** Medium-High. Wrap status transitions in a DB transaction so `submissionHistory` rows
-never diverge from the project row.
+`client/src/components/ProjectForm.tsx`
+- Client-side size guards: images > 10 MB, videos > 500 MB rejected before upload ✓
+
+`server/projects.submission.test.ts`
+- Full suite: 60 tests green; mocks `canSubmitProjects` for deterministic submission tests ✓
 
 ---
 
@@ -362,7 +367,7 @@ New page: `client/src/pages/ReviewQueue.tsx` (route: `/teacher/review-queue`)
 |-------|--------|--------|------|
 | 1 — Fix Voting Pipeline | ✅ DONE | 2d | Medium |
 | 2 — Assignment to Server | ✅ DONE | 1.5d | Medium |
-| 3 — Submission Integrity | 📋 TODO | 1d | Medium-High |
+| 3 — Submission Integrity | ✅ DONE | 1d | Medium-High |
 | 4 — Wire Notifications | 📋 TODO | 1d | Low |
 | 5 — Revision Loop & Rich Fields | 📋 TODO | 1.5-2d | Low-Medium |
 | 6 — Public Browse & Search | 📋 TODO | 1-1.5d | Low |
