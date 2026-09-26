@@ -131,6 +131,11 @@ function ProjectCard({
             </Button>
           </>
         )}
+        {project.status === "rejected" && (
+          <Button size="sm" onClick={onEdit} className="gap-1.5 rounded-xl text-xs font-bold premium-gradient text-white border-none">
+            <Rocket size={13} /> Revise & Resubmit
+          </Button>
+        )}
       </div>
     </div>
   );

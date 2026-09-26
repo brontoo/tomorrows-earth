@@ -155,6 +155,32 @@ export const projectsRouter = router({
       }
     }),
 
+  getMyProjectById: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      if (!ctx.user) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "User not authenticated" });
+      }
+      if (ctx.user.role !== "student") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only students can view their projects" });
+      }
+
+      try {
+        const project = await db.getProjectById(input.id);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
+        }
+        if (project.createdBy !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
+        return project;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error("[TRPC] Failed to get my project:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch project" });
+      }
+    }),
+
   deleteProject: protectedProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
@@ -354,6 +380,12 @@ export const projectsRouter = router({
         imageUrls: z.array(z.string()).optional(),
         videoUrl: z.string().optional(),
         documentUrls: z.array(z.string()).optional(),
+        abstract: z.string().optional(),
+        scientificQuestion: z.string().optional(),
+        sdgAlignment: z.array(z.number().int().min(1).max(17)).max(17).optional(),
+        researchMethod: z.string().optional(),
+        experimentDetails: z.string().optional(),
+        dataExplanation: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -403,6 +435,12 @@ export const projectsRouter = router({
         if (input.imageUrls !== undefined) updates.imageUrls = JSON.stringify(input.imageUrls);
         if (input.videoUrl !== undefined) updates.videoUrl = input.videoUrl;
         if (input.documentUrls !== undefined) updates.documentUrls = JSON.stringify(input.documentUrls);
+        if (input.abstract !== undefined) updates.abstract = input.abstract;
+        if (input.scientificQuestion !== undefined) updates.scientificQuestion = input.scientificQuestion;
+        if (input.sdgAlignment !== undefined) updates.sdgAlignment = JSON.stringify(input.sdgAlignment);
+        if (input.researchMethod !== undefined) updates.researchMethod = input.researchMethod;
+        if (input.experimentDetails !== undefined) updates.experimentDetails = input.experimentDetails;
+        if (input.dataExplanation !== undefined) updates.dataExplanation = input.dataExplanation;
         updates.status = "submitted";
 
         await db.updateProjectStatusWithHistory(input.id, updates, {

@@ -30,6 +30,7 @@ const MissionDetail       = lazy(() => import("./pages/MissionDetail"));
 const MissionVerification = lazy(() => import("./pages/MissionVerification"));
 const MissionsMapPage     = lazy(() => import("./pages/MissionsMapPage"));
 const ProjectDetail      = lazy(() => import("./pages/ProjectDetail"));
+const ProjectEditPage    = lazy(() => import("./pages/ProjectEditPage"));
 const StudentDashboard   = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard   = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard     = lazy(() => import("./pages/AdminDashboard"));
@@ -77,6 +78,7 @@ function Router() {
         <Route path="/innovation-hub/:categorySlug"><Redirect to="/explore" /></Route>
         <Route path="/journey-cinema"><Redirect to="/stories" /></Route>
         <Route path="/project/:id" component={ProjectDetail} />
+        <Route path="/project/:id/edit" component={ProjectEditPage} />
         <Route path="/student/dashboard" component={StudentDashboard} />
         <Route path="/teacher/dashboard" component={TeacherDashboard} />
         <Route path="/teacher/verification" component={MissionVerification} />

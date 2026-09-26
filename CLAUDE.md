@@ -206,27 +206,35 @@ are authoritative from DB.
 
 ---
 
-### 📋 Phase 5 — Revision Loop & Rich Fields — TODO
+### ✅ Phase 5 — Revision Loop & Rich Fields — COMPLETED (session 5)
 
 **Goal:** Students see rejection reason, can revise, and can fill the rich fields `ProjectDetail`
 already renders.
 
-**Files to change:**
-
-`client/src/components/ProjectForm.tsx`
-- Add optional fields to schema and a new "Detailed Info" step (step 2 of 4):
-  `abstract`, `scientificQuestion`, `sdgAlignment` (multi-select SDGs 1–17),
-  `researchMethod`, `experimentDetails`, `dataExplanation`
-- Extract new step into `ProjectDetailsStep.tsx` to keep form under 600 lines
+**Changes made:**
 
 `server/routers/projects.ts`
-- Add `projects.getMyProjectById` query (authorized by `createdBy`)
-- Add `projects.updateMyProject` mutation — open for owners before deadline; on update,
-  set `status = "submitted"` and insert a `submissionHistory` row with action `"revised"`
+- Added `projects.getMyProjectById` — student-only query authorized by `createdBy` ✓
+- Extended `projects.updateMyProject` input with `abstract`, `scientificQuestion`,
+  `sdgAlignment` (1–17), `researchMethod`, `experimentDetails`, `dataExplanation`;
+  values written via the existing transactional `updateProjectStatusWithHistory` ✓
 
-`client/src/pages/StudentDashboard.tsx` (or `MyProjectsDashboard` component)
-- Surface `rejectionReason` when `status = "rejected"`
-- Add "Revise & Resubmit" CTA that opens `ProjectForm` with `initialData` prop populated
+`client/src/components/ProjectDetailsStep.tsx` (NEW)
+- New step 2 of 4: abstract, scientific question, SDG 1–17 multi-select (chip UI),
+  research method, experiment details, data explanation ✓
+
+`client/src/components/ProjectForm.tsx`
+- Added optional rich fields to schema; StepBar now 4 steps ✓
+- `initialData` accepts rich fields + `id`; when `id` present the form calls
+  `updateMyProject` (revision mode) instead of `submitProject` ✓
+- Submit payload includes all rich fields ✓
+
+`client/src/pages/ProjectEditPage.tsx` (NEW) + route `/project/:id/edit`
+- Loads project via `projects.getMyProjectById`, passes `initialData` to `ProjectForm` ✓
+
+`client/src/components/MyProjectsDashboard.tsx`
+- `rejectionReason` already surfaced for rejected projects ✓
+- New "Revise & Resubmit" CTA on rejected cards → navigates to `/project/:id/edit` ✓
 
 **Risk:** Low-Medium. Keep form below 600 lines by extracting the new step.
 **Depends on:** Phase 3 (deadline enforcement), Phase 4 (notifications)
@@ -370,7 +378,7 @@ New page: `client/src/pages/ReviewQueue.tsx` (route: `/teacher/review-queue`)
 | 2 — Assignment to Server | ✅ DONE | 1.5d | Medium |
 | 3 — Submission Integrity | ✅ DONE | 1d | Medium-High |
 | 4 — Wire Notifications | ✅ DONE | 1d | Low |
-| 5 — Revision Loop & Rich Fields | 📋 TODO | 1.5-2d | Low-Medium |
+| 5 — Revision Loop & Rich Fields | ✅ DONE | 1.5-2d | Low-Medium |
 | 6 — Public Browse & Search | 📋 TODO | 1-1.5d | Low |
 | 7 — Voting Integrity & Results | 📋 TODO | 1d | Medium |
 | 8 — Media & Thumbnails | 📋 TODO | 1d | Medium |

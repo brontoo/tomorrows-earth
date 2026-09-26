@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { nanoid } from "nanoid";
 import { trpc } from "@/lib/trpc";
+import ProjectDetailsStep from "./ProjectDetailsStep";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 const projectFormSchema = z.object({
@@ -45,6 +46,12 @@ const projectFormSchema = z.object({
   teamName: z.string().min(2, "Team name must be at least 2 characters").max(100),
   description: z.string().min(20, "Please describe your project in at least 20 characters"),
   grade: z.string().min(1, "Please select a grade"),
+  abstract: z.string().optional(),
+  scientificQuestion: z.string().optional(),
+  sdgAlignment: z.array(z.number()).optional(),
+  researchMethod: z.string().optional(),
+  experimentDetails: z.string().optional(),
+  dataExplanation: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -185,7 +192,7 @@ function DropZone({
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
 function StepBar({ step }: { step: number }) {
-  const steps = ["Basic Info", "Media Upload", "Review & Submit"];
+  const steps = ["Basic Info", "Detailed Info", "Media Upload", "Review & Submit"];
   return (
     <div className="mb-8">
       <div className="flex items-center mb-3">
@@ -222,7 +229,7 @@ function StepBar({ step }: { step: number }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 interface ProjectFormProps {
   onSuccess?: () => void;
-  initialData?: Partial<ProjectFormValues>;
+  initialData?: Partial<ProjectFormValues> & { id?: number };
 }
 
 export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps) {
@@ -272,7 +279,20 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
-    defaultValues: initialData || { title: "", teamName: "", description: "", grade: "" },
+    defaultValues: initialData
+      ? {
+          title: initialData.title || "",
+          teamName: initialData.teamName || "",
+          description: initialData.description || "",
+          grade: initialData.grade || "",
+          abstract: initialData.abstract || "",
+          scientificQuestion: initialData.scientificQuestion || "",
+          sdgAlignment: initialData.sdgAlignment || [],
+          researchMethod: initialData.researchMethod || "",
+          experimentDetails: initialData.experimentDetails || "",
+          dataExplanation: initialData.dataExplanation || "",
+        }
+      : { title: "", teamName: "", description: "", grade: "", sdgAlignment: [] },
   });
 
   const IMAGE_SIZE_LIMIT = 10 * 1024 * 1024;   // 10 MB
@@ -340,7 +360,8 @@ export default function ProjectForm({ onSuccess, initialData }: ProjectFormProps
 
   const removeFile = (idx: number, setter: React.Dispatch<React.SetStateAction<UploadedFile[]>>) =>
     setter((prev) => prev.filter((_, i) => i !== idx));
-const submitProjectMutation = trpc.projects.submitProject.useMutation();
+  const submitProjectMutation = trpc.projects.submitProject.useMutation();
+  const updateProjectMutation = trpc.projects.updateMyProject.useMutation();
 
   // ── Submit ──
   const onSubmit = async (data: ProjectFormValues) => {
@@ -384,19 +405,31 @@ const submitProjectMutation = trpc.projects.submitProject.useMutation();
   const videoUrls = videos.filter((f) => f.url).map((f) => f.url!);
   const docUrls = documents.filter((f) => f.url).map((f) => f.url!);
 
+  const payload = {
+    title: data.title,
+    teamName: data.teamName,
+    description: data.description,
+    grade: data.grade,
+    categoryId: resolvedCategoryId,
+    subcategoryId,
+    supervisorId: supervisorId || undefined,
+    imageUrls,
+    videoUrl: videoUrls[0] || undefined,
+    documentUrls: docUrls,
+    abstract: data.abstract || undefined,
+    scientificQuestion: data.scientificQuestion || undefined,
+    sdgAlignment: data.sdgAlignment?.length ? data.sdgAlignment : undefined,
+    researchMethod: data.researchMethod || undefined,
+    experimentDetails: data.experimentDetails || undefined,
+    dataExplanation: data.dataExplanation || undefined,
+  };
+
   try {
-    await submitProjectMutation.mutateAsync({
-      title: data.title,
-      teamName: data.teamName,
-      description: data.description,
-      grade: data.grade,
-      categoryId: resolvedCategoryId,
-      subcategoryId,
-      supervisorId: supervisorId || undefined,
-      imageUrls,
-      videoUrl: videoUrls[0] || undefined,
-      documentUrls: docUrls,
-    });
+    if (initialData?.id) {
+      await updateProjectMutation.mutateAsync({ id: initialData.id, ...payload });
+    } else {
+      await submitProjectMutation.mutateAsync(payload);
+    }
 
     // ✅ نجح الإرسال
     toast.success("🎉 Project submitted successfully!");
@@ -497,8 +530,11 @@ const submitProjectMutation = trpc.projects.submitProject.useMutation();
             </Card>
           )}
 
-          {/* ══ STEP 2 ══ */}
-          {step === 2 && (
+          {/* ══ STEP 2 ══ Detailed Info ══ */}
+          {step === 2 && <ProjectDetailsStep />}
+
+          {/* ══ STEP 3 ══ */}
+          {step === 3 && (
             <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
                 <CardTitle className="text-lg font-black text-slate-800 dark:text-slate-100">Upload Project Media</CardTitle>
@@ -521,8 +557,8 @@ const submitProjectMutation = trpc.projects.submitProject.useMutation();
             </Card>
           )}
 
-          {/* ══ STEP 3 ══ */}
-          {step === 3 && (
+          {/* ══ STEP 4 ══ */}
+          {step === 4 && (
             <Card className="rounded-2xl border-slate-200 dark:border-slate-700 shadow-sm">
               <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
                 <CardTitle className="text-lg font-black text-slate-800 dark:text-slate-100">Review & Submit</CardTitle>
@@ -583,7 +619,7 @@ const submitProjectMutation = trpc.projects.submitProject.useMutation();
               Back
             </Button>
 
-            {step < 3 ? (
+            {step < 4 ? (
               <Button type="button" onClick={async () => {
                 if (step === 1) {
                   const ok = await form.trigger(["title", "teamName", "description", "grade"]);
