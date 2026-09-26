@@ -178,28 +178,29 @@ are authoritative from DB.
 
 ---
 
-### 📋 Phase 4 — Wire Notifications — TODO
+### ✅ Phase 4 — Wire Notifications — COMPLETED (session 3)
 
 **Goal:** The dashboard "Feedback Pending" chip and notification bell actually mean something.
 
-**Files to change:**
+**Changes made:**
 
 `server/routers.ts`
-- Mount `notifications: notificationsRouter` in `appRouter` (it's imported but NOT added)
+- Mounted `notifications: notificationsRouter` in `appRouter` ✓
 
 `server/routers/notifications.ts`
-- Fix `deleteNotification` — currently does a `set({ read: true })` instead of `delete()`
+- `deleteNotification` verified to use `.delete(notifications)` (not `set({ read: true })`) ✓
 
-`server/routers/projects.ts` + `server/routers.ts`
-- In `teacher.approve`: insert `project_approved` notification for `project.createdBy`
-- In `teacher.reject`: insert `project_rejected` notification for `project.createdBy`
-- In `projects.submitProject`: insert `project_submitted` notification for `supervisorId`
+`server/routers.ts` → `teacher.approve` / `teacher.reject`
+- Insert `project_approved` / `project_rejected` notifications for `project.createdBy` ✓
+
+`server/routers/projects.ts` → `submitProject`
+- Inserts `project_submitted` notification for `supervisorId` ✓
 
 `client/src/components/Navigation.tsx`
-- Add bell icon with unread count badge using `notifications.getUnreadCount` (60s stale)
+- Bell icon with unread count badge via `notifications.getUnreadCount` (60s stale + refetch) ✓
 
 `client/src/pages/StudentDashboard.tsx`
-- Derive `feedbackPending` stat from actual unread notifications, not hardcoded
+- `feedbackCount` derived from `unreadNotifData?.unreadCount` + rejected projects ✓
 
 **Risk:** Low. All additive. Gate email sends behind env var so local dev works without SMTP.
 
@@ -368,7 +369,7 @@ New page: `client/src/pages/ReviewQueue.tsx` (route: `/teacher/review-queue`)
 | 1 — Fix Voting Pipeline | ✅ DONE | 2d | Medium |
 | 2 — Assignment to Server | ✅ DONE | 1.5d | Medium |
 | 3 — Submission Integrity | ✅ DONE | 1d | Medium-High |
-| 4 — Wire Notifications | 📋 TODO | 1d | Low |
+| 4 — Wire Notifications | ✅ DONE | 1d | Low |
 | 5 — Revision Loop & Rich Fields | 📋 TODO | 1.5-2d | Low-Medium |
 | 6 — Public Browse & Search | 📋 TODO | 1-1.5d | Low |
 | 7 — Voting Integrity & Results | 📋 TODO | 1d | Medium |
