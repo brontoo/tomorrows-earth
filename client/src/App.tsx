@@ -41,6 +41,7 @@ const ProjectSubmissionPage   = lazy(() => import("./pages/ProjectSubmissionPage
 const SubcategoriesPage       = lazy(() => import("./pages/SubcategoriesPage"));
 const SubcategoryDetailPage   = lazy(() => import("./pages/SubcategoryDetailPage"));
 const ChooseRole              = lazy(() => import("./pages/ChooseRole"));
+const EcoVerseLanding         = lazy(() => import("./pages/EcoVerseLanding"));
 
 const PageFallback = () => (
   <div className="flex min-h-screen items-center justify-center">
@@ -54,6 +55,7 @@ function Router() {
       <Switch>
         <Route path="/" component={GatewayPage} />
         <Route path="/expo" component={Home} />
+        <Route path="/ecoverse" component={EcoVerseLanding} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={SignUp} />
         <Route path="/choose-role" component={ChooseRole} />

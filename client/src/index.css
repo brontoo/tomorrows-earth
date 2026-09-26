@@ -3,6 +3,43 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* The EcoVerse landing tree is registered explicitly rather than left to
+   automatic detection, so the utilities it relies on do not depend on scan
+   heuristics. Paths are relative to this file. */
+@source "./ecoverse";
+@source "./pages/EcoVerseLanding.tsx";
+
+/* EcoVerse landing palette. Declared here — Tailwind's entry stylesheet — so the
+   `ev-*` utilities resolve. The landing stylesheet itself stays scoped to
+   `.ecoverse` and only consumes these variables. */
+@theme {
+  /* Atmosphere */
+  --color-ev-abyss: oklch(0.13 0.042 268);
+  --color-ev-night: oklch(0.17 0.05 264);
+  --color-ev-deep: oklch(0.215 0.056 262);
+  --color-ev-slate: oklch(0.27 0.05 260);
+  --color-ev-surface: oklch(0.22 0.045 264 / 0.55);
+  --color-ev-surface-solid: oklch(0.2 0.04 264);
+  --color-ev-line: oklch(0.62 0.05 250 / 0.16);
+  --color-ev-line-strong: oklch(0.72 0.06 210 / 0.3);
+
+  /* Worlds */
+  --color-ev-teal: oklch(0.6 0.105 205);
+  --color-ev-teal-lit: oklch(0.79 0.11 196);
+  --color-ev-aqua: oklch(0.86 0.13 191);
+  --color-ev-aqua-deep: oklch(0.72 0.135 200);
+  --color-ev-emerald: oklch(0.7 0.155 154);
+  --color-ev-emerald-lit: oklch(0.83 0.15 152);
+  --color-ev-amber: oklch(0.83 0.145 78);
+  --color-ev-amber-lit: oklch(0.91 0.13 84);
+  --color-ev-coral: oklch(0.73 0.145 32);
+
+  /* Type */
+  --color-ev-chalk: oklch(0.975 0.006 220);
+  --color-ev-mist: oklch(0.79 0.022 235);
+  --color-ev-haze: oklch(0.64 0.022 240);
+}
+
 /* Font family definitions */
 @layer base {
   :root {

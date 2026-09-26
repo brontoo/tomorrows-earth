@@ -187,3 +187,83 @@ This document tracks color contrast ratios across the application to ensure WCAG
 - [ ] Test with Lighthouse accessibility audit
 - [ ] Test with screen reader (NVDA/JAWS)
 - [ ] Verify focus indicators are visible
+
+---
+
+# EcoVerse Landing (`/ecoverse`) — Dark Theme Contrast Audit
+
+The EcoVerse landing page is a **dark** surface, so the light-theme ratios above do not
+apply. The palette is declared as `--color-ev-*` tokens in `client/src/index.css` and consumed
+only inside `.ecoverse`.
+
+## Method
+
+Ratios are computed from the rendered DOM rather than from the token table, so gradient
+backdrops, inherited colours and cumulative `opacity` are all accounted for:
+
+- oklch → sRGB conversion (Björn Ottosson matrices), then WCAG relative luminance.
+- For every visible text node the ancestor chain is composited root → element, resolving each
+  `background-color` and expanding every `background-image` gradient into its colour stops.
+  The **worst** stop pairing is reported, so a token is credited only for its worst placement.
+- `background-clip: text` (wordmark / gradient headings) is audited as the gradient itself
+  rather than as the declared `color`, which is transparent.
+- Threshold: **4.5:1** for body text, **3:1** for large text (≥ 24px, or ≥ 18.66px bold).
+
+**Result: 466 visible text nodes audited, 0 failures.**
+
+## Token Ratios (worst case across the surface stack)
+
+| Token | Ratio | Verdict |
+|---|---|---|
+| `--color-ev-chalk` (0.975) | 14.07:1 | AAA |
+| `--color-ev-amber-lit` (0.91) | 11.17:1 | AAA |
+| `--color-ev-aqua` (0.86) | 10.37:1 | AAA |
+| `--color-ev-teal-lit` (0.79) | 8.16:1 | AAA |
+| `--color-ev-amber` (0.83) | 8.80:1 | AAA |
+| `--color-ev-emerald-lit` (0.83) | 9.46:1 | AAA |
+| `--color-ev-mist` (0.79) | 7.85:1 | AAA |
+| `--color-ev-aqua-deep` (0.72) | 6.54:1 | AA |
+| `--color-ev-coral` (0.73) | 5.96:1 | AA |
+| `--color-ev-emerald` (0.70) | 6.03:1 | AA |
+| `--color-ev-haze` (0.64) | 4.51:1 | AA (borderline) |
+| `--color-ev-teal` (0.60) | 4.01:1 | Large text / non-text only |
+
+`--color-ev-teal`, `--color-ev-aqua-deep` and `--color-ev-amber-lit` fall outside the sRGB
+gamut and are gamut-clipped on render; the figures above already account for the clipped value.
+
+## Issues Found and Fixed
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | `.ev-loop__num` used `ev-haze` on the teal active-node gradient → **3.50:1** at 13px | Switched to `ev-mist` → **6.09:1** |
+| 2 | The host app's global `@layer base` rule `p { @apply text-base text-foreground }` (`client/src/index.css`) applied the **light-theme** `--foreground` to every `<p>` inside the dark landing. The footer copyright and tagline rendered `rgb(17,22,31)` on `rgb(2,3,13)` — effectively invisible | Added a scoped reset in `ecoverse.css` under `@layer utilities` (see below) |
+
+### The scoped reset
+
+```css
+@layer utilities {
+  :where(.ecoverse) p,
+  :where(.ecoverse) a,
+  :where(.ecoverse) code {
+    color: inherit;
+    font-size: inherit;
+    background-color: transparent;
+    padding-inline: 0;
+    border-radius: 0;
+  }
+}
+```
+
+Specificity is the whole trick: `:where()` keeps the selector at **element** specificity
+(0,0,1) so any Tailwind class on the element still wins, while the `utilities` layer outranks
+`@layer base` regardless of source order. The footer copy now correctly inherits `ev-haze` at
+`text-xs`.
+
+## Adding New EcoVerse Copy
+
+- Prefer `ev-mist` over `ev-haze` for anything under 14px — `haze` sits at 4.51:1 and any
+  lighter surface will drop it below AA.
+- `--color-ev-teal` must not be used for text; it is for gradients and UI accents only
+  (3:1 is the correct bar for non-text elements).
+- Re-run the DOM audit after adding a section; token-level arithmetic alone will not catch
+  a new gradient backdrop.
