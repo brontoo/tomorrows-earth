@@ -208,14 +208,25 @@ export const projectsRouter = router({
     }),
 
   // ─── مشاريع عامة للزوار (صفحة التصويت) ─────────────────────────────
-  getPublic: publicProcedure.query(async () => {
-    try {
-      return await db.getPublicProjects();
-    } catch (error) {
-      console.error("[TRPC] Failed to get public projects:", error);
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch projects" });
-    }
-  }),
+  getPublic: publicProcedure
+    .input(
+      z.object({
+        q: z.string().optional(),
+        categoryId: z.number().int().positive().optional(),
+        grade: z.string().optional(),
+        sort: z.enum(["newest", "votes", "title"]).optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        return await db.getPublicProjects(input);
+      } catch (error) {
+        console.error("[TRPC] Failed to get public projects:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch projects" });
+      }
+    }),
 
   // ─── إحصائيات عامة للصفحة الرئيسية ──────────────────────────────────
   getStats: publicProcedure.query(async () => {

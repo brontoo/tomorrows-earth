@@ -11,6 +11,8 @@ export default defineConfig({
       "@": path.resolve('./client/src'),
       "@shared": path.resolve('./shared'),
     },
+    // هذا هو السطر الذي يحل مشكلة الـ 3D دون إفساد التصميم
+    dedupe: ['react', 'react-dom', 'three'],
   },
   envDir: '../',
   build: {

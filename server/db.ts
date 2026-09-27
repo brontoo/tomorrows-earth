@@ -1,4 +1,4 @@
-import { eq, and, count, inArray, desc, sum } from "drizzle-orm";
+import { eq, and, count, inArray, desc, sum, ilike, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../drizzle/schema.js";
@@ -1054,9 +1054,41 @@ export async function getAllProjects() {
   return db.select().from(projects);
 }
 
-export async function getPublicProjects() {
+export async function getPublicProjects(options?: {
+  q?: string;
+  categoryId?: number;
+  grade?: string;
+  sort?: "newest" | "votes" | "title";
+  limit?: number;
+  offset?: number;
+}) {
   const db = await getDb();
   if (!db) return [];
+
+  const conditions = [inArray(projects.status, ["approved", "finalist"])];
+
+  if (options?.q) {
+    const term = `%${options.q}%`;
+    conditions.push(or(ilike(projects.title, term), ilike(projects.teamName, term)));
+  }
+  if (options?.categoryId) {
+    conditions.push(eq(projects.categoryId, options.categoryId));
+  }
+  if (options?.grade) {
+    conditions.push(eq(projects.grade, options.grade));
+  }
+
+  const sort = options?.sort ?? "newest";
+  const orderBy =
+    sort === "title"
+      ? projects.title
+      : sort === "votes"
+        ? desc(count(votes.id))
+        : desc(projects.submittedAt);
+
+  const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
+  const offset = Math.max(options?.offset ?? 0, 0);
+
   return db
     .select({
       id: projects.id,
@@ -1068,9 +1100,16 @@ export async function getPublicProjects() {
       abstract: projects.abstract,
       categoryId: projects.categoryId,
       subcategoryId: projects.subcategoryId,
+      votesCount: count(votes.id),
+      submittedAt: projects.submittedAt,
     })
     .from(projects)
-    .where(inArray(projects.status, ["approved", "finalist"]));
+    .leftJoin(votes, eq(votes.projectId, projects.id))
+    .where(and(...conditions))
+    .groupBy(projects.id)
+    .orderBy(orderBy)
+    .limit(limit)
+    .offset(offset);
 }
 
 export async function getProjectsByCategory(categoryId: number) {
