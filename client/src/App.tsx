@@ -1,10 +1,10 @@
 import "./index.css";
-import CyeraPortal from "./ecoverse/components/hero/CyeraPortal";
+import EcoVerseLanding from "./pages/EcoVerseLanding";
 
 export default function App() {
   return (
     <main className="w-full h-screen overflow-hidden bg-[#11052C]">
-      <CyeraPortal />
+      <EcoVerseLanding />
     </main>
   );
 }
